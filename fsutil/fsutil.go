@@ -2,13 +2,15 @@
  * fsutil.go provides utility functions for working with the filesystem.
  */
 
-package pynezzentials
+package fsutil
 
 import (
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/pynezz/pynezzentials"
 )
 
 // FileExists checks if a file exists
@@ -31,10 +33,10 @@ func GetFiles(dirname string) ([]string, error) {
 	files := []string{}
 	err := filepath.Walk(dirname, func(path string, info os.FileInfo, err error) error {
 		if !info.IsDir() {
-			PrintInfo(fmt.Sprintf("Found file: %s", path))
+			pynezzentials.PrintInfo(fmt.Sprintf("Found file: %s", path))
 			files = append(files, path)
 		} else {
-			PrintInfo(fmt.Sprintf("Found directory: %s", path))
+			pynezzentials.PrintInfo(fmt.Sprintf("Found directory: %s", path))
 		}
 		return nil
 	})
@@ -69,7 +71,7 @@ func GetFile(filename string) (*os.File, error) {
 	file := filename
 	if !FileExists(file) {
 		errMsg := fmt.Sprintf("File %s does not exist", file)
-		return nil, Errorf(errMsg)
+		return nil, pynezzentials.Errorf(errMsg)
 	}
 	return os.Open(file)
 }
