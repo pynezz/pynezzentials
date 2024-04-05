@@ -1,5 +1,9 @@
 # Pynezzentials
 
+![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/pynezz/pynezzentials)
+[![Go Report Card](https://goreportcard.com/badge/github.com/pynezz/pynezzentials)](https://goreportcard.com/report/github.com/pynezz/pynezzentials)
+[![License](https://img.shields.io/github/license/pynezz/pynezzentials)](LICENSE)
+
 Pynezzentials is a Go package that provides some utilities for my personal projects. It is not intended to be a general-purpose library, but it may be useful for some people.
 
 ## Features
