@@ -66,10 +66,10 @@ func LoadModules(path string) {
 	for scanner.Scan() {
 		line := scanner.Text()
 		parts := strings.Split(line, " ")
-		if len(parts) != 2 {
-			pynezzentials.PrintError("LoadModules(): Invalid line in file: " + line)
-			continue
-		}
+		// if len(parts) != 2 {
+		// 	pynezzentials.PrintError("LoadModules(): Invalid line in file: " + line)
+		// 	continue
+		// }
 
 		if parts[0] == "#" || parts[0] == "//" || parts[0] == "*/" || parts[0] == "/*" || parts[0] == "*" {
 			// comment
