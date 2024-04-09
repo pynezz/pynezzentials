@@ -10,7 +10,6 @@ import (
 	"os"
 	"path"
 	"strconv"
-	"strings"
 	"time"
 
 	"gopkg.in/yaml.v3"
@@ -41,39 +40,31 @@ func init() {
 // NewIPCClient creates a new IPC client and returns it.
 // The name is the name of the module, and the socketPath is the path to the UNIX domain socket.
 func NewIPCClient(name string, serverId string) *IPCClient {
-	ipc.SetIPCID([]byte(serverId)) // What server to communicate with. Used for requests and responses
-
+	ipc.SetIPCID([]byte(serverId))                         // What server to communicate with. Used for requests and responses
+	ipc.SetIdentifier(name, [4]byte([]byte(serverId)[:4])) //! Set the identifier for the client - may not be necessary (may be error prone)
 	c := &IPCClient{
-		Name: name,
+		Name:       name,
+		Identifier: ipc.IDENTIFIERS[name], // Set the identifier of the client
 	}
-	tmpDir := os.TempDir() // Get the temporary directory, OS agnostic
-	ipcTmpDir := path.Join(tmpDir, serverId)
-	c.SetSocket(path.Join(ipcTmpDir, serverId+".sock"))
-	// c.SetSocket(serverId) // Default the socket path to the server id name (e.g. "connector" -> "/tmp/connector/connector.sock")
+	c.SetSocket(ipc.DefaultSock(serverId))
 	return c
 }
 
 // Connect to the IPC server (UNIX domain socket)
 // Parameter is the name of the module
 // And identifier is the identifier of the server
-func (c *IPCClient) Connect(module string, identifier string) error {
-	c.SetDescf("IPC client for %s", module)
-	c.Name = module
+func (c *IPCClient) Connect() error {
+	c.SetDescf("IPC client for %s", c.Name)
 
-	// Check if the socket exists
-	if c.Sock == "" {
-		err := c.SetSocket(defaultSocketPath())
-		if err != nil { // The socket did not exist and the user did not want to retry
-			return err // Return the error
-		}
-	}
+	fmt.Println("IPC client connecting to", c.Sock)
+
 	conn, err := net.Dial("unix", c.Sock)
 	if err != nil {
 		fmt.Println("Dial error:", err)
 		return err
 	}
 	c.conn = conn
-	c.Identifier = ipc.IDENTIFIERS[identifier]
+	// c.Identifier = ipc.IDENTIFIERS[identifier]
 
 	pynezzentials.PrintColorAndBg(pynezzentials.BgGray, pynezzentials.BgCyan, "Connected to "+c.Sock)
 
@@ -114,7 +105,8 @@ func (c *IPCClient) Stringify() string {
 // returns a bool (retry) and an error
 func existHandler(exist bool) (bool, error) {
 	if !exist {
-		pynezzentials.PrintError("socket (" + defaultSocketPath() + ") not found")
+		// pynezzentials.PrintError("socket (" + defaultSocketPath() + ") not found")
+		pynezzentials.PrintError("socket not found!")
 		pynezzentials.PrintColorUnderline(pynezzentials.DarkYellow, "Retry? [Y/n]")
 		var response string
 		fmt.Scanln(&response)
@@ -201,7 +193,7 @@ func (c *IPCClient) SendIPCMessage(msg *ipc.IPCRequest) error {
 		if !userRetry() {
 			return fmt.Errorf("connection not established")
 		} else {
-			c.Connect(c.Name, strings.Split(path.Base(c.Sock), ".")[0]) // Get the name of the IPC identifier from the socket path
+			c.Connect() // Get the name of the IPC identifier from the socket path
 		}
 	}
 
