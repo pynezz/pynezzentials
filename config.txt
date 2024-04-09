@@ -1,0 +1,23 @@
+##########################################################
+# IPC module definitions                                 #
+# ------------------------------------------------------ #
+# Format:                                                #
+# module [4]byte :: Description                          #
+#                                                        #
+# Example:                                               #
+# sigma SIGM :: sigma rules module                       #
+#                                                        #
+# Note:                                                  #
+#  - Comments:                                           #
+#   Lines starting with '#', '/*', '*/', '*', '//'       #
+#                                                        #
+#  - Whitespace is ignored                               #
+#  - Empty lines are ignored                             #
+#  - Only the first and 2nd words are parsed per line    #
+#    meaning that the description can contain spaces     #
+#    but the module name cannot.                         #
+#                                                        #
+##########################################################
+
+example_module  EXMP    :: Example module
+anothermodule   ANOT    :: Another example module

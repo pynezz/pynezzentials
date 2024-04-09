@@ -1,6 +1,7 @@
 package ipcserver
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/gob"
 	"encoding/json"
@@ -10,8 +11,10 @@ import (
 	"net"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/pynezz/pynezzentials"
+	"github.com/pynezz/pynezzentials/fsutil"
 	"github.com/pynezz/pynezzentials/ipc"
 	"gopkg.in/yaml.v3"
 )
@@ -46,6 +49,36 @@ type IPCServer struct {
 
 func init() {
 	MODULEIDENTIFIERS = map[string][]byte{}
+}
+
+func LoadModules(path string) {
+	if !fsutil.FileExists(path) {
+		pynezzentials.PrintError("LoadModules(): File does not exist: " + path)
+	}
+	f, err := os.Open(path)
+	if err != nil {
+		pynezzentials.PrintError("LoadModules(): " + err.Error())
+		return
+	}
+	defer f.Close()
+
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		line := scanner.Text()
+		parts := strings.Split(line, " ")
+		if len(parts) != 2 {
+			pynezzentials.PrintError("LoadModules(): Invalid line in file: " + line)
+			continue
+		}
+
+		if parts[0] == "#" || parts[0] == "//" || parts[0] == "*/" || parts[0] == "/*" || parts[0] == "*" {
+			// comment
+			continue
+		}
+
+		AddModule(parts[0], []byte(parts[1]))
+		pynezzentials.PrintColorf(pynezzentials.LightCyan, "Loaded module: %s", parts[0])
+	}
 }
 
 // NewIPCServer creates a new IPC server and returns it.
@@ -143,6 +176,7 @@ func crc(b []byte) uint32 {
 func NewIPCMessage(identifierKey string, messageType byte, data []byte) (*ipc.IPCRequest, error) {
 	identifier, ok := MODULEIDENTIFIERS[identifierKey]
 	if !ok {
+		AddModule(identifierKey, []byte(identifierKey))
 		return nil, fmt.Errorf("invalid identifier key: %s", identifierKey)
 	}
 

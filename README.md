@@ -35,6 +35,59 @@ func main() {
 }
 ```
 
+## IPC
+UNIX Domain sockets inter process communication (IPC) is a mechanism for exchanging data between processes running on the same host operating system. Pynezzentials provides a simple way to create a server and client for IPC.
+
+### Server
+
+```go
+package main
+
+import (
+    "fmt"
+    "github.com/pynezz/pynezzentials/ipc"
+)
+
+func main() {
+    server := ipc.NewIPCServer("servername", [4]byte{0, 0, 0, 1})  // Identifier for the server
+
+    server.LoadModules("config.txt")
+
+    server.Listen(func(data []byte) []byte {
+        fmt.Println("Received data:", string(data))
+        return []byte("Hello, client!")
+    })
+}
+```
+
+### Client
+
+```go
+package main
+
+import (
+    "fmt"
+    "github.com/pynezz/pynezzentials/ipc"
+)
+
+func main() {
+    client := ipc.NewIPCClient("client1", [4]byte{0, 0, 0, 1})   // Identifier must match the server's identifier
+    err := client.Connect()
+    if err != {
+        fmt.Println("Error:", err)
+    }
+
+    msg := client.CreateGenericReq([]byte("Hello, server!"), ipc.MSG_MSG, icp.DATA_JSON)
+
+    response, err = client.SendIPCMessage(msg)
+    if err != nil {
+        fmt.Println("Error:", err)
+    } else {
+        fmt.Println("Received response:", string(response))
+    }
+}
+```
+
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+[LICENSE](LICENSE)
