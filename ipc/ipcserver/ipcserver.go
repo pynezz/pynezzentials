@@ -39,8 +39,9 @@ var IPCID []byte
  * Types for the IPC communication between the connector and the other modules.
  */
 type IPCServer struct {
-	path string
-	conn net.Listener
+	path       string
+	identifier string
+	conn       net.Listener
 }
 
 func init() {
@@ -107,7 +108,7 @@ func (s *IPCServer) Listen() {
 			continue
 		}
 
-		handleConnection(conn)
+		s.handleConnection(conn)
 	}
 }
 
@@ -252,7 +253,7 @@ func responseTime(reqTime int64) {
 }
 
 // handleConnection handles the incoming connection
-func handleConnection(c net.Conn) {
+func (s *IPCServer) handleConnection(c net.Conn) {
 	defer c.Close()
 
 	pynezzentials.PrintColorf(pynezzentials.LightCyan, "[🔌SOCKETS] Handling connection...")
@@ -274,7 +275,7 @@ func handleConnection(c net.Conn) {
 		pynezzentials.PrintColorf(pynezzentials.BgGreen, "Received: %+v\n", request)
 
 		// Finally, respond to the client
-		err = respond(c, request)
+		err = s.respond(c, request)
 		if err != nil {
 			pynezzentials.PrintError("handleConnection: " + err.Error())
 			break
@@ -283,15 +284,17 @@ func handleConnection(c net.Conn) {
 
 }
 
-func respond(c net.Conn, req ipc.IPCRequest) error {
+func (s *IPCServer) respond(c net.Conn, req ipc.IPCRequest) error {
 	pynezzentials.PrintDebug("Responding to the client...")
+	moduleId := string(req.Header.Identifier[:])
 	var response *ipc.IPCRequest
 	var err error
 	if req.Checksum32 == int(crc(req.Message.Data)) {
-		response, err = NewIPCMessage("ipc", ipc.MSG_ACK, []byte("OK"))
+		// TODO: Refactor. Not very pretty. (the identifier key part)
+		response, err = NewIPCMessage(moduleId, ipc.MSG_ACK, []byte("OK"))
 	} else {
 		fmt.Printf("Request checksum: %v\nCalculated checksum: %v\n", req.Checksum32, crc(req.Message.Data))
-		response, err = NewIPCMessage("ipc", ipc.MSG_ERROR, []byte("CHKSUM ERROR"))
+		response, err = NewIPCMessage(moduleId, ipc.MSG_ERROR, []byte("CHKSUM ERROR"))
 	}
 	if err != nil {
 		return err
