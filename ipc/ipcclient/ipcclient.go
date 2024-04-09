@@ -102,7 +102,7 @@ func existHandler(exist bool) (bool, error) {
 		pynezzentials.PrintColorUnderline(pynezzentials.DarkYellow, "Retry? [Y/n]")
 		var response string
 		fmt.Scanln(&response)
-		if response[0] == 'n' {
+		if len(response) > 0 && response[0] == 'n' {
 			return false, fmt.Errorf("socket not found")
 		}
 		return true, nil
