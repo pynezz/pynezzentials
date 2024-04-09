@@ -66,8 +66,8 @@ func LoadModules(path string) {
 	for scanner.Scan() {
 		line := scanner.Text()
 		parts := strings.Split(line, " ")
-
-		if parts[0] == "#" || parts[0] == "//" || parts[0] == "*/" || parts[0] == "/*" || parts[0] == "*" {
+		firstChar := parts[0][0]
+		if firstChar == '#' || firstChar == ' ' || firstChar == '\t' || firstChar == '/' || firstChar == '*' {
 			// comment
 			continue
 		}
