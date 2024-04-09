@@ -29,7 +29,7 @@ type IPCMessageId []byte // Identifier of the message
 
 func SetIPCID(id []byte) {
 	IPCID = id
-	pynezzentials.PrintSuccess("Set IPC ID to" + string(IPCID))
+	pynezzentials.PrintSuccess("Set IPC ID to " + string(IPCID))
 }
 
 func GetIPCStrID() string {
