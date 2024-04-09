@@ -5,6 +5,8 @@
 package ipc
 
 import (
+	"os"
+	"path"
 	"time"
 
 	"github.com/pynezz/pynezzentials"
@@ -34,4 +36,13 @@ func SetIPCID(id []byte) {
 
 func GetIPCStrID() string {
 	return string(IPCID)
+}
+
+func DefaultSock(name string) string {
+	tmpDir := os.TempDir()                     // Temporary directory (eg. /tmp)
+	subTmpDir := path.Join(tmpDir, name)       // Subdirectory in the temporary directory (eg. /tmp/<subTmpDir>)
+	sock := path.Join(subTmpDir, name+".sock") // Socket file path (eg. /tmp/<subTmpDir>/<name>)
+	sock = path.Clean(sock)                    // Clean the path
+
+	return sock
 }

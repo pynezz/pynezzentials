@@ -54,8 +54,13 @@ func init() {
 }
 
 // NewIPCServer creates a new IPC server and returns it.
-func NewIPCServer(path string, identifier string) *IPCServer {
+func NewIPCServer(name string, identifier string) *IPCServer {
+	path := ipc.DefaultSock(name)
 	IPCID = []byte(identifier)
+	ipc.SetIPCID(IPCID)
+
+	pynezzentials.PrintColorf(pynezzentials.LightCyan, "[🔌SOCKETS] IPC server path: %s", path)
+
 	return &IPCServer{
 		path: path,
 	}
