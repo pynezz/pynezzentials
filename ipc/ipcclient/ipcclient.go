@@ -225,7 +225,7 @@ func (c *IPCClient) SendIPCMessage(msg *ipc.IPCRequest) error {
 }
 
 // NewMessage creates a new IPC message.
-func (c *IPCClient) CreateReq(message string, t ipc.MsgType, dataType ipc.DataType, msgSig ipc.DataType) *ipc.IPCRequest {
+func (c *IPCClient) CreateReq(message string, t ipc.MsgType, dataType ipc.DataType) *ipc.IPCRequest {
 	checksum := crc32.ChecksumIEEE([]byte(message))
 	pynezzentials.PrintDebug("Created IPC checksum: " + strconv.Itoa(int(checksum)))
 
