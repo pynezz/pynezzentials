@@ -46,7 +46,10 @@ func NewIPCClient(name string, serverId string) *IPCClient {
 	c := &IPCClient{
 		Name: name,
 	}
-	c.SetSocket(serverId) // Default the socket path to the server id name (e.g. "connector" -> "/tmp/connector/connector.sock")
+	tmpDir := os.TempDir() // Get the temporary directory, OS agnostic
+	ipcTmpDir := path.Join(tmpDir, serverId)
+	c.SetSocket(path.Join(ipcTmpDir, serverId+".sock"))
+	// c.SetSocket(serverId) // Default the socket path to the server id name (e.g. "connector" -> "/tmp/connector/connector.sock")
 	return c
 }
 
@@ -54,7 +57,7 @@ func NewIPCClient(name string, serverId string) *IPCClient {
 // Parameter is the name of the module
 // And identifier is the identifier of the server
 func (c *IPCClient) Connect(module string, identifier string) error {
-	c.SetDescf("IPC testing client for %s", module)
+	c.SetDescf("IPC client for %s", module)
 	c.Name = module
 
 	// Check if the socket exists
