@@ -55,6 +55,7 @@ func LoadModules(path string) {
 	if !fsutil.FileExists(path) {
 		pynezzentials.PrintError("LoadModules(): File does not exist: " + path)
 	}
+	pynezzentials.PrintSuccess("File exists: " + path)
 	f, err := os.Open(path)
 	if err != nil {
 		pynezzentials.PrintError("LoadModules(): " + err.Error())
@@ -65,25 +66,27 @@ func LoadModules(path string) {
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
 		line := scanner.Text()
+		fmt.Println(line)
 		parts := strings.Split(line, " ")
+		if len(parts[0]) < 1 {
+			// empty line
+			continue
+		}
 		firstChar := parts[0][0]
-		if firstChar == '#' || firstChar == ' ' || firstChar == '\t' || firstChar == '/' || firstChar == '*' {
+		if firstChar == '#' || firstChar == ' ' || firstChar == '\t' || firstChar == '/' || firstChar == '*' || firstChar == '\n' || firstChar == '\r' {
 			// comment
 			continue
 		}
-
-		fmt.Println(parts)
 
 		for i, part := range parts {
 			if part == "\t" || part == " " {
 				// skip
 				continue
 			}
-
 			parts[i] = strings.TrimSpace(part)
 		}
 
-		AddModule(parts[0], []byte(parts[1]))
+		AddModule(parts[0], []byte(parts[1])) // Add module to the server
 		pynezzentials.PrintColorf(pynezzentials.LightCyan, "Loaded module: %s", parts[0])
 	}
 }
