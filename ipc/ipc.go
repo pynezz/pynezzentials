@@ -5,6 +5,7 @@
 package ipc
 
 import (
+	"encoding/gob"
 	"os"
 	"path"
 	"time"
@@ -45,4 +46,13 @@ func DefaultSock(name string) string {
 	sock = path.Clean(sock)                    // Clean the path
 
 	return sock
+}
+
+func init() {
+
+	gob.Register(IPCRequest{})
+	gob.Register(IPCMessage{})
+	gob.Register(IPCHeader{})
+	gob.Register(IPCMessageId{})
+	gob.Register(IPCResponse{})
 }

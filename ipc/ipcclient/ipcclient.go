@@ -29,14 +29,6 @@ type IPCClient struct {
 	conn net.Conn // Connection to the IPC server (UNIX domain socket)
 }
 
-func init() {
-	gob.Register(&ipc.IPCRequest{})
-	gob.Register(&ipc.IPCMessage{})
-	gob.Register(&ipc.IPCHeader{})
-	gob.Register(&ipc.IPCMessageId{})
-	gob.Register(&ipc.IPCResponse{})
-}
-
 // NewIPCClient creates a new IPC client and returns it.
 // The name is the name of the module, and the socketPath is the path to the UNIX domain socket.
 func NewIPCClient(name string, serverId string) *IPCClient {

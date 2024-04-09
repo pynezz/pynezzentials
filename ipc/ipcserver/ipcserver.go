@@ -45,12 +45,6 @@ type IPCServer struct {
 
 func init() {
 	MODULEIDENTIFIERS = map[string][]byte{}
-
-	gob.Register(ipc.IPCRequest{})
-	gob.Register(ipc.IPCMessage{})
-	gob.Register(ipc.IPCHeader{})
-	gob.Register(ipc.IPCMessageId{})
-	gob.Register(&ipc.IPCResponse{})
 }
 
 // NewIPCServer creates a new IPC server and returns it.
