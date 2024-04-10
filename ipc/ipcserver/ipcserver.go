@@ -255,7 +255,7 @@ func parseMetadata(msg ipc.GenericData) bool {
 
 // Parse the method/verb from the message
 func parseVerb(msg ipc.GenericData) string {
-	v := msg["Metadata"].(map[string]interface{})["Method"].(string)
+	v := msg["metadata"].(map[string]interface{})["method"].(string)
 	if v == "" {
 		return "nil"
 	}
