@@ -249,7 +249,29 @@ func parseConnection(c net.Conn) (ipc.IPCRequest, error) {
 func parseMetadata(msg ipc.GenericData) bool {
 	metadata := msg["metadata"]
 	source := metadata.(map[string]interface{})["source"]
-	destination := metadata.(map[string]interface{})["destination"]
+
+	//metadata:map[
+	//	destination:
+	// 		map[destination:
+	//			map[
+	// 				id:sigma detection
+	// 				info:table=sigma_detections
+	// 				name:database
+	// 			]
+	//		]
+	// ]
+	/*
+			"destination": map[string]interface{}{
+		                "destination": map[string]interface{}{
+		                    "id":   "sigma detection",
+		                    "info": "table=sigma_detections",
+		                    "name": "database",
+		                },
+		            },
+	*/
+	// Nested destination map
+	destination := metadata.(map[string]interface{})["destination"].(map[string]interface{})["destination"]
+
 	destinationId := destination.(map[string]interface{})["id"]
 	destinationName := destination.(map[string]interface{})["name"]
 	destinationInfo := destination.(map[string]interface{})["info"]
