@@ -36,7 +36,37 @@ type IPCResponse struct {
 //
 //	var data GenericData = map[string]interface{}{"someKey": "someValue"}
 //	fmt.Println("Received data:", data["someKey"]) // Will print someValue
+
+// GenericData is a generic map for data. It can be used to store any data type.
 type GenericData map[string]interface{}
+
+type Metadata struct {
+	Source      string      `json:"source"`      // Source. Ex: sigma
+	Destination Destination `json:"destination"` // Destination. Ex: { name: database, info: "table=threat_intel" }
+	Method      string      `json:"method"`      // Using HTTP verbs to differentiate between requests (ps: this got nothing to do with actual HTTP)
+}
+
+type Destination struct {
+	Object Object `json:"destination" yaml:"destination"` // Object (descriptor of the destination) should unmarsal as Destination
+}
+
+type GetJSON struct {
+	Metadata    Metadata `json:"metadata"`
+	Description string   `json:"description"`
+}
+
+type Object struct {
+	Id   string `json:"id"`
+	Name string `json:"name"`
+	Info string `json:"info"`
+}
+
+type Database struct {
+	Name  string `json:"name"`
+	Table string `json:"table"`
+}
+
+// ----------------------------
 
 type MsgType int
 type DataType int
