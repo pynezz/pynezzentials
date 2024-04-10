@@ -232,8 +232,10 @@ func parseConnection(c net.Conn) (ipc.IPCRequest, error) {
 		return request, err
 	}
 	d := parseData(&request.Message)
-	fmt.Println("Vendor: ", d["vendor"])
-
+	if d == nil {
+		fmt.Println("Data is nil")
+		return request, nil
+	}
 	if parseMetadata(d) {
 		fmt.Println("Method: ", parseVerb(d))
 	}
@@ -247,31 +249,14 @@ func parseConnection(c net.Conn) (ipc.IPCRequest, error) {
 }
 
 func parseMetadata(msg ipc.GenericData) bool {
+
+	// TODO: Might be reasonable to implement the Metadata struct here (ipc.Metadata)
 	metadata := msg["metadata"]
+	if metadata == nil {
+		return false
+	}
 	source := metadata.(map[string]interface{})["source"]
-
-	//metadata:map[
-	//	destination:
-	// 		map[destination:
-	//			map[
-	// 				id:sigma detection
-	// 				info:table=sigma_detections
-	// 				name:database
-	// 			]
-	//		]
-	// ]
-	/*
-			"destination": map[string]interface{}{
-		                "destination": map[string]interface{}{
-		                    "id":   "sigma detection",
-		                    "info": "table=sigma_detections",
-		                    "name": "database",
-		                },
-		            },
-	*/
-	// Nested destination map
 	destination := metadata.(map[string]interface{})["destination"].(map[string]interface{})["destination"]
-
 	destinationId := destination.(map[string]interface{})["id"]
 	destinationName := destination.(map[string]interface{})["name"]
 	destinationInfo := destination.(map[string]interface{})["info"]
@@ -312,26 +297,25 @@ func parseData(msg *ipc.IPCMessage) ipc.GenericData {
 
 	switch msg.Datatype {
 	case ipc.DATA_TEXT:
-		// Parse the integer data
 		fmt.Println("Data is string")
 	case ipc.DATA_INT:
-		// Parse the JSON data
+		// Parse the integer data
+		// Might be a disconnect message
 		fmt.Println("Data is integer")
-		// data = ipc.JSONData(msg.Data)
+
 	case ipc.DATA_JSON:
-		// Parse the string data
+		// Parse the JSON data
 		fmt.Println("Data is json / generic data")
-		// json.Unmarshal(msg.Data, &data)
 
 		// var temp interface{}
 		err := json.Unmarshal(msg.Data, &data)
 		if err != nil {
 			fmt.Println("Error unmarshaling JSON data:", err)
 		} else {
-			// fmt.Println("Temporary data:", temp)
-			// data = temp.(map[string]interface{})
 			fmt.Printf("Data: %v\n", data)
 		}
+
+		handleGenericData(data)
 
 	case ipc.DATA_YAML:
 		// Parse the YAML data
@@ -340,13 +324,21 @@ func parseData(msg *ipc.IPCMessage) ipc.GenericData {
 		if err != nil {
 			fmt.Println("Error unmarshaling YAML data:", err)
 		}
+
+		handleGenericData(data)
+
 	case ipc.DATA_BIN:
 		// Parse the binary data
 		fmt.Println("Data is binary / generic data")
+
+		handleGenericData(data)
+
 	default:
 		// Default to generic data
 		fmt.Println("Data is generic")
 		gob.NewDecoder(bytes.NewReader(msg.Data)).Decode(&data)
+		handleGenericData(data)
+
 	}
 
 	if data == nil {
@@ -354,6 +346,10 @@ func parseData(msg *ipc.IPCMessage) ipc.GenericData {
 	}
 
 	return data
+}
+
+func handleGenericData(data ipc.GenericData) {
+	// Handle the data
 }
 
 // Calculate the response time
@@ -398,7 +394,23 @@ func (s *IPCServer) handleConnection(c net.Conn) {
 
 }
 
+type ReturnData struct {
+}
+
+func (d *ReturnData) GetLogs(path string) {
+	// Read the logs from the file
+	// Return the logs
+
+}
+
+// c is the connection to the client
+// req is the request from the client
 func (s *IPCServer) respond(c net.Conn, req ipc.IPCRequest) error {
+	if req.Checksum32 == 0 {
+		pynezzentials.PrintWarning("Checksum is 0, skipping response")
+		return nil
+	}
+
 	pynezzentials.PrintDebug("Responding to the client...")
 	moduleId := string(req.Header.Identifier[:])
 	var response *ipc.IPCRequest
