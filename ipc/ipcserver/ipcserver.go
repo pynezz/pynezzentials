@@ -248,8 +248,30 @@ func parseConnection(c net.Conn) (ipc.IPCRequest, error) {
 
 func parseMetadata(msg ipc.GenericData) bool {
 	metadata := msg["metadata"]
+	source := metadata.(map[string]interface{})["source"]
+	destination := metadata.(map[string]interface{})["destination"]
+	destinationId := destination.(map[string]interface{})["id"]
+	destinationName := destination.(map[string]interface{})["name"]
+	destinationInfo := destination.(map[string]interface{})["info"]
 
-	fmt.Println("Metadata: ", metadata)
+	method := metadata.(map[string]interface{})["method"]
+
+	v := ""
+	if method == "POST" {
+		v = "send data to"
+	} else if method == "GET" {
+		v = "get data from"
+	} else if method == "PUT" {
+		v = "update data in"
+	} else if method == "DELETE" {
+		v = "delete data from"
+	} else {
+		v = "???"
+	}
+
+	sentence := fmt.Sprintf("\n %s wants to %s %s with id %s \n", source, v, destinationName, destinationId)
+	pynezzentials.PrintBold(sentence)
+	pynezzentials.PrintItalic("Additional info: " + destinationInfo.(string))
 	return metadata != nil
 }
 
@@ -265,7 +287,6 @@ func parseVerb(msg ipc.GenericData) string {
 
 func parseData(msg *ipc.IPCMessage) ipc.GenericData {
 	var data ipc.GenericData
-	// var dataType ipc.DataType
 
 	switch msg.Datatype {
 	case ipc.DATA_TEXT:
