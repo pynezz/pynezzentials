@@ -101,7 +101,9 @@ func NewIPCServer(name string, identifier string) *IPCServer {
 	pynezzentials.PrintColorf(pynezzentials.LightCyan, "[🔌SOCKETS] IPC server path: %s", path)
 
 	return &IPCServer{
-		path: path,
+		path:       path,
+		identifier: identifier,
+		conn:       nil,
 	}
 }
 

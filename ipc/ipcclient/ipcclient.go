@@ -10,6 +10,7 @@ import (
 	"os"
 	"path"
 	"strconv"
+	"strings"
 	"time"
 
 	"gopkg.in/yaml.v3"
@@ -32,13 +33,14 @@ type IPCClient struct {
 // NewIPCClient creates a new IPC client and returns it.
 // The name is the name of the module, and the socketPath is the path to the UNIX domain socket.
 func NewIPCClient(name string, serverId string) *IPCClient {
-	ipc.SetIPCID([]byte(serverId))                         // What server to communicate with. Used for requests and responses
-	ipc.SetIdentifier(name, [4]byte([]byte(serverId)[:4])) //! Set the identifier for the client - may not be necessary (may be error prone)
+	upper := strings.ToUpper(serverId)
+	ipc.SetIPCID([]byte(upper))                         // What server to communicate with. Used for requests and responses
+	ipc.SetIdentifier(name, [4]byte([]byte(upper)[:4])) //! Set the identifier for the client - may not be necessary (may be error prone)
 	c := &IPCClient{
 		Name:       name,
 		Identifier: ipc.IDENTIFIERS[name], // Set the identifier of the client
 	}
-	c.SetSocket(ipc.DefaultSock(serverId))
+	c.SetSocket(ipc.DefaultSock(serverId)) // Lowercase serverId
 	return c
 }
 
