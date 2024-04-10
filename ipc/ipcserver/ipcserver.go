@@ -247,7 +247,7 @@ func parseConnection(c net.Conn) (ipc.IPCRequest, error) {
 }
 
 func parseMetadata(msg ipc.GenericData) bool {
-	metadata := msg["Metadata"]
+	metadata := msg["metadata"]
 
 	fmt.Println("Metadata: ", metadata)
 	return metadata != nil
