@@ -234,12 +234,33 @@ func parseConnection(c net.Conn) (ipc.IPCRequest, error) {
 	d := parseData(&request.Message)
 	fmt.Println("Vendor: ", d["vendor"])
 
+	if parseMetadata(d) {
+		fmt.Println("Method: ", parseVerb(d))
+	}
+
 	fmt.Println(request.Stringify())
 	pynezzentials.PrintDebug("--------------------")
 	pynezzentials.PrintSuccess("[ipcserver.go] Parsed the message signature!")
 	fmt.Printf("Message ID: %s\n", string(request.MessageSignature))
 
 	return request, nil
+}
+
+func parseMetadata(msg ipc.GenericData) bool {
+	metadata := msg["Metadata"].(map[string]interface{})
+
+	fmt.Println("Metadata: ", metadata)
+	return metadata != nil
+}
+
+// Parse the method/verb from the message
+func parseVerb(msg ipc.GenericData) string {
+	v := msg["Metadata"].(map[string]interface{})["Method"].(string)
+	if v == "" {
+		return "nil"
+	}
+	pynezzentials.PrintSuccess("Verb: " + v)
+	return v
 }
 
 func parseData(msg *ipc.IPCMessage) ipc.GenericData {

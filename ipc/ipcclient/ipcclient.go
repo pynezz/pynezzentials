@@ -7,8 +7,6 @@ import (
 	"fmt"
 	"hash/crc32"
 	"net"
-	"os"
-	"path"
 	"strconv"
 	"strings"
 	"time"
@@ -130,13 +128,6 @@ func (c *IPCClient) SetSocket(socketPath string) error {
 	return err
 }
 
-// Get the default socket path (UNIX domain socket path, /tmp/ipc/ipc.sock)
-func defaultSocketPath() string {
-	tmpDir := os.TempDir() // Get the temporary directory, OS agnostic
-	ipcTmpDir := path.Join(tmpDir, "ipc")
-	return path.Join(ipcTmpDir, "ipc.sock")
-}
-
 // userRetry asks the user if they want to retry connecting to the IPC server.
 func userRetry() bool {
 	fmt.Println("IPCClient not connected\nDid you forget to call Connect()?")
@@ -144,6 +135,9 @@ func userRetry() bool {
 
 	var retry string
 	fmt.Scanln(&retry)
+	if len(retry) == 0 { // If the user doesn't enter anything,
+		return true // we assume they hit enter and want to retry
+	}
 	return retry[0] != 'n' // If the user doesn't want to retry, return false
 }
 
