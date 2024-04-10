@@ -102,8 +102,10 @@ func existHandler(exist bool) (bool, error) {
 		pynezzentials.PrintColorUnderline(pynezzentials.DarkYellow, "Retry? [Y/n]")
 		var response string
 		fmt.Scanln(&response)
-		if len(response) > 0 && response[0] == 'n' {
-			return false, fmt.Errorf("socket not found")
+		if len(response) > 0 {
+			if response[0] == 'n' {
+				return false, fmt.Errorf("socket not found")
+			}
 		}
 		return true, nil
 	}
@@ -112,7 +114,7 @@ func existHandler(exist bool) (bool, error) {
 
 func (c *IPCClient) SetSocket(socketPath string) error {
 	if socketPath == "" {
-		socketPath = defaultSocketPath()
+		socketPath = ipc.DefaultSock(ipc.GetIPCStrID())
 	}
 	c.Sock = socketPath
 

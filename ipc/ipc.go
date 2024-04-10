@@ -31,8 +31,12 @@ var IPCID []byte // Identifier of the IPC communication
 type IPCMessageId []byte // Identifier of the message
 
 func SetIPCID(id []byte) {
-	IPCID = id
-	pynezzentials.PrintSuccess("Set IPC ID to " + string(IPCID))
+	if IPCID == nil {
+		IPCID = id
+		pynezzentials.PrintSuccess("Set IPC ID to " + string(IPCID))
+	} else {
+		pynezzentials.PrintWarning("IPC ID already set to " + string(IPCID))
+	}
 }
 
 func GetIPCStrID() string {

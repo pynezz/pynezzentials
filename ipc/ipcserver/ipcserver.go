@@ -96,6 +96,7 @@ func NewIPCServer(name string, identifier string) *IPCServer {
 	path := ipc.DefaultSock(name)
 	IPCID = []byte(identifier)
 	ipc.SetIPCID(IPCID)
+	SetServerIdentifier(IPCID)
 
 	pynezzentials.PrintColorf(pynezzentials.LightCyan, "[🔌SOCKETS] IPC server path: %s", path)
 
@@ -112,6 +113,8 @@ func AddModule(identifier string, id []byte) {
 		id = id[:4]
 	}
 	MODULEIDENTIFIERS[identifier] = id
+
+	pynezzentials.PrintSuccess("added module:" + string(MODULEIDENTIFIERS[identifier]))
 }
 
 // Set the server identifier to the SERVERIDENTIFIER variable
@@ -122,6 +125,7 @@ func SetServerIdentifier(id []byte) {
 		id = id[:4]
 	}
 	SERVERIDENTIFIER = [4]byte(id) // Convert the slice to an array
+	pynezzentials.PrintSuccess("Set server identifier: " + string(SERVERIDENTIFIER[:]))
 }
 
 // Write a socket file and add it to the map
