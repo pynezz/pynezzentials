@@ -32,8 +32,8 @@ type IPCClient struct {
 // The name is the name of the module, and the socketPath is the path to the UNIX domain socket.
 func NewIPCClient(name string, serverId string) *IPCClient {
 	upper := strings.ToUpper(serverId)
-	ipc.SetIPCID([]byte(upper))                         // What server to communicate with. Used for requests and responses
-	ipc.SetIdentifier(name, [4]byte([]byte(upper)[:4])) //! Set the identifier for the client - may not be necessary (may be error prone)
+	ipc.SetIPCID([]byte(upper))                        // What server to communicate with. Used for requests and responses
+	ipc.SetIdentifier(name, [4]byte([]byte(name)[:4])) //! Set the identifier for the client - may not be necessary (may be error prone)
 	c := &IPCClient{
 		Name:       name,
 		Identifier: ipc.IDENTIFIERS[name], // Set the identifier of the client
