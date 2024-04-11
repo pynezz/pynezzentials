@@ -30,13 +30,14 @@ type IPCClient struct {
 
 // NewIPCClient creates a new IPC client and returns it.
 // The name is the name of the module, and the socketPath is the path to the UNIX domain socket.
-func NewIPCClient(name string, serverId string) *IPCClient {
+func NewIPCClient(name string, identifier string, serverId string) *IPCClient {
 	upper := strings.ToUpper(serverId)
-	ipc.SetIPCID([]byte(upper))                        // What server to communicate with. Used for requests and responses
-	ipc.SetIdentifier(name, [4]byte([]byte(name)[:4])) //! Set the identifier for the client - may not be necessary (may be error prone)
+	ipc.SetIPCID([]byte(upper)) // What server to communicate with. Used for requests and responses
+	var identifierBytes [4]byte
+	copy(identifierBytes[:], identifier)
 	c := &IPCClient{
 		Name:       name,
-		Identifier: ipc.IDENTIFIERS[name], // Set the identifier of the client
+		Identifier: identifierBytes, // Set the identifier of the client
 	}
 	c.SetSocket(ipc.DefaultSock(serverId)) // Lowercase serverId
 	return c
