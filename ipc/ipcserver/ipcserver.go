@@ -395,12 +395,21 @@ func (s *IPCServer) handleConnection(c net.Conn) {
 }
 
 type ReturnData struct {
+	Metadata ipc.Metadata `json:"metadata"`
+	Data     interface{}  `json:"data"`
 }
 
-func (d *ReturnData) GetLogs(path string) {
-	// Read the logs from the file
-	// Return the logs
+type DataSource struct {
+}
 
+// TODO: Where should we tell the server where to get the logs from?
+func (d *ReturnData) GetLogs(path string, filter string) {
+	// Read the logs from the file
+	if fsutil.FileExists(path) {
+
+	}
+
+	// Not sure if this fits here. Might rather implement it in the internal package
 }
 
 // c is the connection to the client
