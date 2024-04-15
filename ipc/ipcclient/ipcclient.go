@@ -171,6 +171,48 @@ func (c *IPCClient) AwaitResponse() error {
 	return nil
 }
 
+func (c *IPCClient) ClientListen() ipc.GenericData {
+	var err error
+
+	if c.conn == nil {
+		pynezzentials.PrintError("Connection not established")
+		return nil
+	}
+
+	req, err := parseConnection(c.conn)
+	if err != nil {
+		if err.Error() == "EOF" {
+			pynezzentials.PrintWarning("Client disconnected")
+			return nil
+		}
+		pynezzentials.PrintError("Error parsing the connection")
+		return nil
+	}
+
+	pynezzentials.PrintSuccess("Received message from server: " + req.Message.StringData)
+
+	if string(req.Message.Data) == "OK" {
+		pynezzentials.PrintColorf(pynezzentials.LightCyan, "Message type: %v\n", req.Header.MessageType)
+		pynezzentials.PrintSuccess("Checksums match")
+
+		// GenericData is a generic map for data. It can be used to store any data type.
+		// type GenericData map[string]interface{}
+		genericData := make(map[string]interface{})
+		err = json.Unmarshal(req.Message.Data, &genericData)
+		if err != nil {
+			pynezzentials.PrintError("Error unmarshaling JSON data")
+			return nil
+		}
+
+		pynezzentials.PrintSuccess("Unmarshaled JSON data")
+
+		return genericData
+	} else {
+		pynezzentials.PrintError("Checksums do not match")
+		return nil
+	}
+}
+
 // SendIPCMessage sends an IPC message to the server.
 func (c *IPCClient) SendIPCMessage(msg *ipc.IPCRequest) error {
 	var bBuffer bytes.Buffer
