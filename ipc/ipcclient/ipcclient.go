@@ -214,7 +214,7 @@ func (c *IPCClient) ClientListen() ipc.IPCResponse {
 }
 
 // SendIPCMessage sends an IPC message to the server.
-func (c *IPCClient) SendIPCMessage(msg *ipc.IPCRequest) error {
+func (c *IPCClient) SendIPCMessage(msg *ipc.IPCRequest, then ...func() error) error {
 	var bBuffer bytes.Buffer
 	encoder := gob.NewEncoder(&bBuffer)
 	err := encoder.Encode(msg)
@@ -239,11 +239,20 @@ func (c *IPCClient) SendIPCMessage(msg *ipc.IPCRequest) error {
 	pynezzentials.PrintSuccess("Message sent: " + msg.Message.StringData)
 
 	pynezzentials.PrintDebug("Awaiting response...")
-	err = c.AwaitResponse()
+
+	next := func() error {
+		return c.AwaitResponse()
+	}
+
+	if len(then) > 0 {
+		err = then[0]()
+	} else {
+		err = next()
+	}
+
 	if err != nil {
 		pynezzentials.PrintError("Error receiving response from server")
 		fmt.Println(err)
-		return err
 	}
 
 	return nil
