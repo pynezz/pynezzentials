@@ -171,46 +171,46 @@ func (c *IPCClient) AwaitResponse() error {
 	return nil
 }
 
-func (c *IPCClient) ClientListen() ipc.GenericData {
+// ClientListen listens for a message from the server and returns the data.
+// GenericData is a generic map for data (map[string]interface{}). It can be used to store any data type.
+func (c *IPCClient) ClientListen() ipc.IPCResponse {
 	var err error
+
+	response := ipc.IPCResponse{}
 
 	if c.conn == nil {
 		pynezzentials.PrintError("Connection not established")
-		return nil
+		return response
 	}
 
-	req, err := parseConnection(c.conn)
+	res, err := parseConnection(c.conn)
 	if err != nil {
+		response.Success = false
 		if err.Error() == "EOF" {
 			pynezzentials.PrintWarning("Client disconnected")
-			return nil
+			return response
 		}
 		pynezzentials.PrintError("Error parsing the connection")
-		return nil
+		return response
 	}
 
-	pynezzentials.PrintSuccess("Received message from server: " + req.Message.StringData)
+	response = ipc.IPCResponse{
+		Request:    res,
+		Success:    true,
+		Message:    res.Message.StringData,
+		Checksum32: res.Checksum32,
+	}
 
-	if string(req.Message.Data) == "OK" {
-		pynezzentials.PrintColorf(pynezzentials.LightCyan, "Message type: %v\n", req.Header.MessageType)
+	pynezzentials.PrintSuccess("Received message from server: " + response.Message)
+
+	if string(res.Message.Data) == "OK" {
+		pynezzentials.PrintColorf(pynezzentials.LightCyan, "Message type: %v\n", res.Header.MessageType)
 		pynezzentials.PrintSuccess("Checksums match")
-
-		// GenericData is a generic map for data. It can be used to store any data type.
-		// type GenericData map[string]interface{}
-		genericData := make(map[string]interface{})
-		err = json.Unmarshal(req.Message.Data, &genericData)
-		if err != nil {
-			pynezzentials.PrintError("Error unmarshaling JSON data")
-			return nil
-		}
-
-		pynezzentials.PrintSuccess("Unmarshaled JSON data")
-
-		return genericData
 	} else {
 		pynezzentials.PrintError("Checksums do not match")
-		return nil
 	}
+
+	return response
 }
 
 // SendIPCMessage sends an IPC message to the server.
