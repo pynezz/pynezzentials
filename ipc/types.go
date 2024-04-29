@@ -47,7 +47,7 @@ type Metadata struct {
 }
 
 type Destination struct {
-	Object Object `json:"destination" yaml:"destination"` // TODO: (sjekk dette, Destionation med stor D?) Object (descriptor of the destination) should unmarsal as Destination (?)
+	Object Object `json:"destination" yaml:"destination"` // should unmarsal as Destination
 }
 
 type GetJSON struct {
