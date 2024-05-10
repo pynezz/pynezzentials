@@ -142,8 +142,9 @@ func userRetry() bool {
 	return retry[0] != 'n' // If the user doesn't want to retry, return false
 }
 
-func (c *IPCClient) AwaitResponse() error {
+func (c *IPCClient) AwaitResponse() (ipc.IPCMessage, error) {
 	var err error
+	var response ipc.IPCMessage
 
 	if c.conn == nil {
 		pynezzentials.PrintError("Connection not established")
@@ -152,23 +153,22 @@ func (c *IPCClient) AwaitResponse() error {
 	req, err := parseConnection(c.conn)
 	if err != nil {
 		if err.Error() == "EOF" {
-			pynezzentials.PrintWarning("Client disconnected")
-			return err
+			return response, fmt.Errorf("client disconnected")
 		}
 		pynezzentials.PrintError("Error parsing the connection")
-		return err
+		return response, err
 	}
-	pynezzentials.PrintSuccess("Received response from server: " + req.Message.StringData)
+	// pynezzentials.PrintSuccess("Received response from server: " + req.Message.StringData)
 
 	if string(req.Message.Data) == "OK" {
 		pynezzentials.PrintColorf(pynezzentials.LightCyan, "Message type: %v\n", req.Header.MessageType)
 		pynezzentials.PrintSuccess("Checksums match")
 	} else {
 		pynezzentials.PrintError("Checksums do not match")
-		return fmt.Errorf("checksums do not match")
+		return response, fmt.Errorf("checksums do not match")
 	}
 
-	return nil
+	return response, nil
 }
 
 // ClientListen listens for a message from the server and returns the data.
@@ -203,6 +203,7 @@ func (c *IPCClient) ClientListen() ipc.IPCResponse {
 
 	pynezzentials.PrintSuccess("Received message from server: " + response.Message)
 
+	// TODO: This will not work properly. Time is too constrained atm. Fix this later.
 	if string(res.Message.Data) == "OK" {
 		pynezzentials.PrintColorf(pynezzentials.LightCyan, "Message type: %v\n", res.Header.MessageType)
 		pynezzentials.PrintSuccess("Checksums match")
@@ -214,17 +215,26 @@ func (c *IPCClient) ClientListen() ipc.IPCResponse {
 }
 
 // SendIPCMessage sends an IPC message to the server.
-func (c *IPCClient) SendIPCMessage(msg *ipc.IPCRequest, then ...func() error) error {
+// To get the response, you can pass a function that will be called after the message is sent.
+//
+// Example:
+//
+//	err := client.SendIPCMessage(req, func() (ipc.IPCMessage, error) {
+//		return client.ParseResponse()
+//	})
+func (c *IPCClient) SendIPCMessage(msg *ipc.IPCRequest, then ...func() (ipc.IPCMessage, error)) (ipc.IPCMessage, error) {
 	var bBuffer bytes.Buffer
+	var response ipc.IPCMessage
+
 	encoder := gob.NewEncoder(&bBuffer)
 	err := encoder.Encode(msg)
 	if err != nil {
-		return err
+		return response, err
 	}
 
 	if c.conn == nil {
 		if !userRetry() {
-			return fmt.Errorf("connection not established")
+			return response, fmt.Errorf("connection not established")
 		} else {
 			c.Connect() // Get the name of the IPC identifier from the socket path
 		}
@@ -234,28 +244,37 @@ func (c *IPCClient) SendIPCMessage(msg *ipc.IPCRequest, then ...func() error) er
 	_, err = c.conn.Write(bBuffer.Bytes())
 	if err != nil {
 		fmt.Println("Write error:", err)
-		return err
+		return response, err
 	}
 	pynezzentials.PrintSuccess("Message sent: " + msg.Message.StringData)
 
 	pynezzentials.PrintDebug("Awaiting response...")
 
-	next := func() error {
+	// next is a function that will be called after the message is sent
+	next := func() (ipc.IPCMessage, error) {
+		pynezzentials.PrintDebug("Awaiting response...")
 		return c.AwaitResponse()
 	}
 
-	if len(then) > 0 {
-		err = then[0]()
-	} else {
-		err = next()
-	}
+	// funcArr := []func() (ipc.IPCMessage, error){}
+
+	// // If there are any functions in the then array, add them to the funcArr
+	// if len(then) > 0 {
+	// 	for _, f := range then[:len(then)-1] {
+	// 		funcArr = append(funcArr, f)
+	// 	}
+	// 	funcArr = append(funcArr, next)
+	// } else {
+	// 	response, err = next()
+	// }
+	response, err = next()
 
 	if err != nil {
 		pynezzentials.PrintError("Error receiving response from server")
 		fmt.Println(err)
 	}
 
-	return nil
+	return response, nil
 }
 
 // NewMessage creates a new IPC message.
