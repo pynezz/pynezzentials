@@ -168,6 +168,12 @@ func (c *IPCClient) AwaitResponse() (ipc.IPCMessage, error) {
 	// 	return response, fmt.Errorf("checksums do not match")
 	// }
 
+	response = ipc.IPCMessage{
+		Datatype:   req.Message.Datatype,
+		Data:       req.Message.Data,
+		StringData: req.Message.StringData,
+	}
+
 	if len(req.Message.StringData) > 100 {
 		pynezzentials.PrintSuccess("Received message from server (truncated): " + response.StringData[:100] + "...")
 	} else {
@@ -214,7 +220,7 @@ func (c *IPCClient) ClientListen() ipc.IPCResponse {
 		Checksum32: res.Checksum32,
 	}
 
-	if len(res.Message.StringData) > 100 {
+	if len(response.Message) > 100 {
 		pynezzentials.PrintSuccess("Received message from server (truncated): " + response.Message[:100] + "...")
 	} else {
 		pynezzentials.PrintSuccess("Received message from server: " + response.Message)
