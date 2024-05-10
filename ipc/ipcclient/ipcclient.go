@@ -160,12 +160,25 @@ func (c *IPCClient) AwaitResponse() (ipc.IPCMessage, error) {
 	}
 	// pynezzentials.PrintSuccess("Received response from server: " + req.Message.StringData)
 
-	if string(req.Message.Data) == "OK" {
+	// if string(req.Message.Data) == "OK" {
+	// 	pynezzentials.PrintColorf(pynezzentials.LightCyan, "Message type: %v\n", req.Header.MessageType)
+	// 	pynezzentials.PrintSuccess("Checksums match")
+	// } else {
+	// 	pynezzentials.PrintError("Checksums do not match")
+	// 	return response, fmt.Errorf("checksums do not match")
+	// }
+
+	if len(req.Message.StringData) > 100 {
+		pynezzentials.PrintSuccess("Received message from server (truncated): " + response.StringData[:100] + "...")
+	} else {
+		pynezzentials.PrintSuccess("Received message from server: " + response.StringData)
+	}
+
+	if uint32(req.Checksum32) == crc32.ChecksumIEEE(req.Message.Data) {
 		pynezzentials.PrintColorf(pynezzentials.LightCyan, "Message type: %v\n", req.Header.MessageType)
 		pynezzentials.PrintSuccess("Checksums match")
 	} else {
 		pynezzentials.PrintError("Checksums do not match")
-		return response, fmt.Errorf("checksums do not match")
 	}
 
 	return response, nil
@@ -187,7 +200,7 @@ func (c *IPCClient) ClientListen() ipc.IPCResponse {
 	if err != nil {
 		response.Success = false
 		if err.Error() == "EOF" {
-			pynezzentials.PrintWarning("Client disconnected")
+			pynezzentials.PrintItalic("[<- ->] client disconnected")
 			return response
 		}
 		pynezzentials.PrintError("Error parsing the connection")
@@ -196,15 +209,18 @@ func (c *IPCClient) ClientListen() ipc.IPCResponse {
 
 	response = ipc.IPCResponse{
 		Request:    res,
-		Success:    true,
+		Success:    uint32(res.Checksum32) == crc32.ChecksumIEEE(res.Message.Data),
 		Message:    res.Message.StringData,
 		Checksum32: res.Checksum32,
 	}
 
-	pynezzentials.PrintSuccess("Received message from server: " + response.Message)
+	if len(res.Message.StringData) > 100 {
+		pynezzentials.PrintSuccess("Received message from server (truncated): " + response.Message[:100] + "...")
+	} else {
+		pynezzentials.PrintSuccess("Received message from server: " + response.Message)
+	}
 
-	// TODO: This will not work properly. Time is too constrained atm. Fix this later.
-	if string(res.Message.Data) == "OK" {
+	if response.Success {
 		pynezzentials.PrintColorf(pynezzentials.LightCyan, "Message type: %v\n", res.Header.MessageType)
 		pynezzentials.PrintSuccess("Checksums match")
 	} else {
@@ -247,8 +263,6 @@ func (c *IPCClient) SendIPCMessage(msg *ipc.IPCRequest, then ...func() (ipc.IPCM
 		return response, err
 	}
 	pynezzentials.PrintSuccess("Message sent: " + msg.Message.StringData)
-
-	pynezzentials.PrintDebug("Awaiting response...")
 
 	// next is a function that will be called after the message is sent
 	next := func() (ipc.IPCMessage, error) {
@@ -352,7 +366,6 @@ func parseConnection(c net.Conn) (ipc.IPCRequest, error) {
 	var request ipc.IPCRequest
 	// var reqBuffer bytes.Buffer
 
-	pynezzentials.PrintDebug("[CLIENT] Trying to decode the bytes to a request struct...")
 	pynezzentials.PrintColorf(pynezzentials.LightCyan, "[CLIENT] Decoding the bytes to a request struct... %v", c)
 
 	decoder := gob.NewDecoder(c)
@@ -366,11 +379,6 @@ func parseConnection(c net.Conn) (ipc.IPCRequest, error) {
 		return request, err
 	}
 
-	pynezzentials.PrintDebug("Trying to encode the bytes to a request struct...")
-	fmt.Println(request.Stringify())
-	pynezzentials.PrintDebug("--------------------")
-
-	pynezzentials.PrintSuccess("[ipcclient.go] Parsed the message signature!")
 	fmt.Printf("Message ID: %v\n", request.MessageSignature)
 
 	return request, nil
