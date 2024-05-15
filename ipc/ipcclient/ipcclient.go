@@ -268,7 +268,11 @@ func (c *IPCClient) SendIPCMessage(msg *ipc.IPCRequest, then ...func() (ipc.IPCM
 		fmt.Println("Write error:", err)
 		return response, err
 	}
-	pynezzentials.PrintSuccess("Message sent: " + msg.Message.StringData)
+	if len(msg.Message.StringData) > 100 {
+		pynezzentials.PrintSuccess("Message sent (truncated): " + msg.Message.StringData[:100] + "...")
+	} else {
+		pynezzentials.PrintSuccess("Message sent: " + msg.Message.StringData)
+	}
 
 	// next is a function that will be called after the message is sent
 	next := func() (ipc.IPCMessage, error) {
