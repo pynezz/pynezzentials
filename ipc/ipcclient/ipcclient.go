@@ -274,10 +274,16 @@ func (c *IPCClient) SendIPCMessage(msg *ipc.IPCRequest, then ...func() (ipc.IPCM
 		pynezzentials.PrintSuccess("Message sent: " + msg.Message.StringData)
 	}
 
-	// next is a function that will be called after the message is sent
+	//  next is a function that will be called after the message is sent
 	next := func() (ipc.IPCMessage, error) {
 		pynezzentials.PrintDebug("Awaiting response...")
 		return c.AwaitResponse()
+	}
+
+	if len(then) > 0 {
+		response, err = then[0]()
+	} else {
+		response, err = next()
 	}
 
 	// funcArr := []func() (ipc.IPCMessage, error){}
@@ -291,7 +297,6 @@ func (c *IPCClient) SendIPCMessage(msg *ipc.IPCRequest, then ...func() (ipc.IPCM
 	// } else {
 	// 	response, err = next()
 	// }
-	response, err = next()
 
 	if err != nil {
 		pynezzentials.PrintError("Error receiving response from server")
