@@ -10,7 +10,7 @@ import (
 	"path"
 	"time"
 
-	"github.com/pynezz/pynezzentials"
+	"github.com/pynezz/pynezzentials/ansi"
 )
 
 const (
@@ -33,9 +33,9 @@ type IPCMessageId []byte // Identifier of the message
 func SetIPCID(id []byte) {
 	if IPCID == nil {
 		IPCID = id
-		pynezzentials.PrintSuccess("Set IPC ID to " + string(IPCID))
+		ansi.PrintSuccess("Set IPC ID to " + string(IPCID))
 	} else {
-		pynezzentials.PrintWarning("IPC ID already set to " + string(IPCID))
+		ansi.PrintWarning("IPC ID already set to " + string(IPCID))
 	}
 }
 

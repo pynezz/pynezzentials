@@ -11,7 +11,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/pynezz/pynezzentials"
+	"github.com/pynezz/pynezzentials/ansi"
 )
 
 // FileExists checks if a file exists
@@ -43,10 +43,10 @@ func GetFiles(dirname string) ([]string, error) {
 	files := []string{}
 	err := filepath.Walk(dirname, func(path string, info os.FileInfo, err error) error {
 		if !info.IsDir() {
-			pynezzentials.PrintInfo(fmt.Sprintf("Found file: %s", path))
+			ansi.PrintInfo(fmt.Sprintf("Found file: %s", path))
 			files = append(files, path)
 		} else {
-			pynezzentials.PrintInfo(fmt.Sprintf("Found directory: %s", path))
+			ansi.PrintInfo(fmt.Sprintf("Found directory: %s", path))
 		}
 		return nil
 	})
@@ -81,7 +81,7 @@ func GetFile(filename string) (*os.File, error) {
 	file := filename
 	if !FileExists(file) {
 		errMsg := fmt.Sprintf("File %s does not exist", file)
-		return nil, pynezzentials.Errorf(errMsg)
+		return nil, ansi.Errorf(errMsg)
 	}
 	return os.Open(file)
 }

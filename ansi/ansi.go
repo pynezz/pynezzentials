@@ -1,7 +1,9 @@
-package pynezzentials
+package ansi
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 )
 
 // Ansi colors
@@ -15,6 +17,12 @@ const (
 	Cyan   = "\033[36m"
 	Gray   = "\033[37m"
 	White  = "\033[97m"
+)
+
+type U8color string
+
+const (
+	SetColor = "38"
 )
 
 // Ansi styles
@@ -305,4 +313,42 @@ func PrintColorAndBg(color, bg, msg string) {
 // PrintColorAndBgBold prints a colored bold message with a background to the console
 func PrintColorAndBgBold(color, bg, msg string) {
 	fmt.Printf("%s%s%s\n", color+bg+Bold, msg, Reset)
+}
+
+func (s U8color) Color256(color U8color, msg string) string {
+	return fmt.Sprintf("\033[%s;5;%sm%s%s", SetColor, string(color), msg, Reset)
+}
+
+// HexToRGB converts a hex color string to an RGB string
+//
+// Example:
+//
+//	U8color.HexColor256("#3498db") or U8Color.HexToColor("3498d")
+func HexToRGB(hex string) (int, int, int, error) {
+	hex = strings.TrimPrefix(hex, "#")
+	if len(hex) != 6 {
+		return 0, 0, 0, fmt.Errorf("invalid hex color")
+	}
+
+	r, err := strconv.ParseInt(hex[0:2], 16, 0)
+	if err != nil {
+		return 0, 0, 0, err
+	}
+	g, err := strconv.ParseInt(hex[2:4], 16, 0)
+	if err != nil {
+		return 0, 0, 0, err
+	}
+	b, err := strconv.ParseInt(hex[4:6], 16, 0)
+	if err != nil {
+		return 0, 0, 0, err
+	}
+
+	return int(r), int(g), int(b), nil
+}
+
+// HexColor256 converts RGB values to an ANSI 256 color escape sequence and applies it to a message
+func (s U8color) HexColor256(r, g, b int, msg string) string {
+	// Convert RGB values to the nearest xterm 256 color code
+	color := 16 + 36*(r/51) + 6*(g/51) + (b / 51)
+	return fmt.Sprintf("\033[%s;5;%dm%s%s", SetColor, color, msg, Reset)
 }

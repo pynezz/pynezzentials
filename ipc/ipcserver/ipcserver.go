@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/pynezz/pynezzentials"
+	"github.com/pynezz/pynezzentials/ansi"
 	"github.com/pynezz/pynezzentials/fsutil"
 	"github.com/pynezz/pynezzentials/ipc"
 	"gopkg.in/yaml.v3"
@@ -53,12 +54,12 @@ func init() {
 
 func LoadModules(path string) {
 	if !fsutil.FileExists(path) {
-		pynezzentials.PrintError("LoadModules(): File does not exist: " + path)
+		ansi.PrintError("LoadModules(): File does not exist: " + path)
 	}
-	pynezzentials.PrintSuccess("File exists: " + path)
+	ansi.PrintSuccess("File exists: " + path)
 	f, err := os.Open(path)
 	if err != nil {
-		pynezzentials.PrintError("LoadModules(): " + err.Error())
+		ansi.PrintError("LoadModules(): " + err.Error())
 		return
 	}
 	defer f.Close()
@@ -87,7 +88,7 @@ func LoadModules(path string) {
 		}
 
 		AddModule(parts[0], []byte(parts[1])) // Add module to the server
-		pynezzentials.PrintColorf(pynezzentials.LightCyan, "Loaded module: %s", parts[0])
+		ansi.PrintColorf(ansi.LightCyan, "Loaded module: %s", parts[0])
 	}
 }
 
@@ -98,7 +99,7 @@ func NewIPCServer(name string, identifier string) *IPCServer {
 	ipc.SetIPCID(IPCID)
 	SetServerIdentifier(IPCID)
 
-	pynezzentials.PrintColorf(pynezzentials.LightCyan, "[🔌SOCKETS] IPC server path: %s", path)
+	ansi.PrintColorf(ansi.LightCyan, "[🔌SOCKETS] IPC server path: %s", path)
 
 	return &IPCServer{
 		path:       path,
@@ -110,31 +111,31 @@ func NewIPCServer(name string, identifier string) *IPCServer {
 // Add a new module identifier to the map
 func AddModule(identifier string, id []byte) {
 	if len(id) > 4 {
-		pynezzentials.PrintError("AddModule(): Identifier length must be 4 bytes")
-		pynezzentials.PrintInfo("Truncating the identifier to 4 bytes")
+		ansi.PrintError("AddModule(): Identifier length must be 4 bytes")
+		ansi.PrintInfo("Truncating the identifier to 4 bytes")
 		id = id[:4]
 	}
 	MODULEIDENTIFIERS[identifier] = id
 
-	pynezzentials.PrintSuccess("added module:" + string(MODULEIDENTIFIERS[identifier]))
+	ansi.PrintSuccess("added module:" + string(MODULEIDENTIFIERS[identifier]))
 }
 
 // Set the server identifier to the SERVERIDENTIFIER variable
 func SetServerIdentifier(id []byte) {
 	if len(id) > 4 {
-		pynezzentials.PrintError("SetServerIdentifier(): Identifier length must be 4 bytes")
-		pynezzentials.PrintInfo("Truncating the identifier to 4 bytes")
+		ansi.PrintError("SetServerIdentifier(): Identifier length must be 4 bytes")
+		ansi.PrintInfo("Truncating the identifier to 4 bytes")
 		id = id[:4]
 	}
 	SERVERIDENTIFIER = [4]byte(id) // Convert the slice to an array
-	pynezzentials.PrintSuccess("Set server identifier: " + string(SERVERIDENTIFIER[:]))
+	ansi.PrintSuccess("Set server identifier: " + string(SERVERIDENTIFIER[:]))
 }
 
 // Write a socket file and add it to the map
 func (s *IPCServer) InitServerSocket() bool {
 	// Making sure the socket is clean before starting
 	if err := os.RemoveAll(s.path); err != nil {
-		pynezzentials.PrintError("InitServerSocket(): Failed to remove old socket: " + err.Error())
+		ansi.PrintError("InitServerSocket(): Failed to remove old socket: " + err.Error())
 		return false
 	}
 
@@ -143,17 +144,17 @@ func (s *IPCServer) InitServerSocket() bool {
 
 // Creates a new listener on the socket path (which should be set in the config in the future)
 func (s *IPCServer) Listen() {
-	pynezzentials.PrintColorBold(pynezzentials.DarkGreen, "🎉 IPC server running!")
+	ansi.PrintColorBold(ansi.DarkGreen, "🎉 IPC server running!")
 	s.conn, _ = net.Listen(AF_UNIX, s.path)
-	pynezzentials.PrintColorf(pynezzentials.LightCyan, "[🔌SOCKETS] Starting listener on %s", s.path)
+	ansi.PrintColorf(ansi.LightCyan, "[🔌SOCKETS] Starting listener on %s", s.path)
 
 	for {
-		pynezzentials.PrintDebug("Waiting for connection...")
+		ansi.PrintDebug("Waiting for connection...")
 		conn, err := s.conn.Accept()
-		pynezzentials.PrintColorf(pynezzentials.LightCyan, "[🔌SOCKETS]: New connection from %s", conn.LocalAddr().String())
+		ansi.PrintColorf(ansi.LightCyan, "[🔌SOCKETS]: New connection from %s", conn.LocalAddr().String())
 
 		if err != nil {
-			pynezzentials.PrintError("Listen(): " + err.Error())
+			ansi.PrintError("Listen(): " + err.Error())
 			continue
 		}
 
@@ -163,8 +164,8 @@ func (s *IPCServer) Listen() {
 
 func NewIPCID(identifier string, id []byte) {
 	if len(id) > 4 {
-		pynezzentials.PrintError("NewIPCID(): Identifier length must be 4 bytes")
-		pynezzentials.PrintInfo("Truncating the identifier to 4 bytes")
+		ansi.PrintError("NewIPCID(): Identifier length must be 4 bytes")
+		ansi.PrintInfo("Truncating the identifier to 4 bytes")
 		id = id[:4]
 	}
 	ipc.SetIPCID(id)
@@ -172,16 +173,16 @@ func NewIPCID(identifier string, id []byte) {
 
 func Cleanup() {
 	// for _, server := range connections.sockets {
-	// 	pynezzentials.PrintItalic("Cleaning up IPC server: " + server.path)
+	// 	ansi.PrintItalic("Cleaning up IPC server: " + server.path)
 	// 	err := os.Remove(server.path)
 	// 	if err != nil {
-	// 		pynezzentials.PrintError("Cleanup(): " + err.Error())
+	// 		ansi.PrintError("Cleanup(): " + err.Error())
 	// 	}
 
-	// 	pynezzentials.PrintItalic("Closing connection: " + server.conn.Addr().String())
+	// 	ansi.PrintItalic("Closing connection: " + server.conn.Addr().String())
 	// 	server.conn.Close()
 	// }
-	pynezzentials.PrintItalic("\t... IPC server cleanup complete.")
+	ansi.PrintItalic("\t... IPC server cleanup complete.")
 }
 
 func crc(b []byte) uint32 {
@@ -222,13 +223,13 @@ func parseConnection(c net.Conn) (ipc.IPCRequest, error) {
 	var request ipc.IPCRequest
 	// var reqBuffer bytes.Buffer
 
-	pynezzentials.PrintDebug("Trying to decode the bytes to a request struct...")
-	pynezzentials.PrintColorf(pynezzentials.LightCyan, "Decoding the bytes to a request struct... %v", c)
+	ansi.PrintDebug("Trying to decode the bytes to a request struct...")
+	ansi.PrintColorf(ansi.LightCyan, "Decoding the bytes to a request struct... %v", c)
 
 	decoder := gob.NewDecoder(c)
 	err := decoder.Decode(&request)
 	if err != nil {
-		pynezzentials.PrintWarning("parseConnection: Error decoding the request: \n > " + err.Error())
+		ansi.PrintWarning("parseConnection: Error decoding the request: \n > " + err.Error())
 		return request, err
 	}
 	d := parseData(&request.Message)
@@ -241,8 +242,8 @@ func parseConnection(c net.Conn) (ipc.IPCRequest, error) {
 	}
 
 	fmt.Println(request.Stringify())
-	pynezzentials.PrintDebug("--------------------")
-	pynezzentials.PrintSuccess("[ipcserver.go] Parsed the message signature!")
+	ansi.PrintDebug("--------------------")
+	ansi.PrintSuccess("[ipcserver.go] Parsed the message signature!")
 	fmt.Printf("Message ID: %s\n", string(request.MessageSignature))
 
 	return request, nil
@@ -277,8 +278,8 @@ func parseMetadata(msg ipc.GenericData) bool {
 	}
 
 	sentence := fmt.Sprintf("\n %s wants to %s %s with id %s \n", source, v, destinationName, destinationId)
-	pynezzentials.PrintBold(sentence)
-	pynezzentials.PrintItalic("Additional info: " + destinationInfo.(string))
+	ansi.PrintBold(sentence)
+	ansi.PrintItalic("Additional info: " + destinationInfo.(string))
 	return metadata != nil
 }
 
@@ -288,7 +289,7 @@ func parseVerb(msg ipc.GenericData) string {
 	if v == "" {
 		return "nil"
 	}
-	pynezzentials.PrintSuccess("Verb: " + v)
+	ansi.PrintSuccess("Verb: " + v)
 	return v
 }
 
@@ -366,28 +367,28 @@ func responseTime(reqTime int64) {
 func (s *IPCServer) handleConnection(c net.Conn) {
 	defer c.Close()
 
-	pynezzentials.PrintColorf(pynezzentials.LightCyan, "[🔌SOCKETS] Handling connection...")
+	ansi.PrintColorf(ansi.LightCyan, "[🔌SOCKETS] Handling connection...")
 
 	for {
 		request, err := parseConnection(c)
 		if err != nil {
 			if err == io.EOF {
-				pynezzentials.PrintDebug("Connection closed by client")
+				ansi.PrintDebug("Connection closed by client")
 				break
 			}
-			pynezzentials.PrintError("Error parsing request: " + err.Error())
+			ansi.PrintError("Error parsing request: " + err.Error())
 			break
 		}
 
-		pynezzentials.PrintDebug("Request parsed: " + strconv.Itoa(request.Checksum32))
+		ansi.PrintDebug("Request parsed: " + strconv.Itoa(request.Checksum32))
 
 		// Process the request...
-		pynezzentials.PrintColorf(pynezzentials.BgGreen, "Received: %+v\n", request)
+		ansi.PrintColorf(ansi.BgGreen, "Received: %+v\n", request)
 
 		// Finally, respond to the client
 		err = s.respond(c, request)
 		if err != nil {
-			pynezzentials.PrintError("handleConnection: " + err.Error())
+			ansi.PrintError("handleConnection: " + err.Error())
 			break
 		}
 	}
@@ -416,11 +417,11 @@ func (d *ReturnData) GetLogs(path string, filter string) {
 // req is the request from the client
 func (s *IPCServer) respond(c net.Conn, req ipc.IPCRequest) error {
 	if req.Checksum32 == 0 {
-		pynezzentials.PrintWarning("Checksum is 0, skipping response")
+		ansi.PrintWarning("Checksum is 0, skipping response")
 		return nil
 	}
 
-	pynezzentials.PrintDebug("Responding to the client...")
+	ansi.PrintDebug("Responding to the client...")
 	moduleId := string(req.Header.Identifier[:])
 	var response *ipc.IPCRequest
 	var err error
@@ -446,7 +447,7 @@ func (s *IPCServer) respond(c net.Conn, req ipc.IPCRequest) error {
 	if err != nil {
 		return err
 	}
-	pynezzentials.PrintColor(pynezzentials.BgGreen, "🚀 Response sent!")
+	ansi.PrintColor(ansi.BgGreen, "🚀 Response sent!")
 
 	responseTime(req.Timestamp)
 
