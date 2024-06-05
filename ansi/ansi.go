@@ -25,6 +25,7 @@ const (
 	SetColor  U8Color = "38"
 	SetNormal U8Color = "5"
 	SetHex    U8Color = "2"
+	SetBgHex          = "48"
 )
 
 var Bit8Color U8Color
@@ -328,6 +329,8 @@ func (s U8Color) Color256(color U8Color, msg string) string {
 // Example:
 //
 //	U8color.HexColor256("#3498db") or U8Color.HexToColor("3498d")
+//
+// HexToRGB converts a hex color string to an RGB string
 func HexToRGB(hex string) (int, int, int, error) {
 	hex = strings.TrimPrefix(hex, "#")
 	if len(hex) != 6 {
@@ -350,24 +353,50 @@ func HexToRGB(hex string) (int, int, int, error) {
 	return int(r), int(g), int(b), nil
 }
 
+// RGBToColor256 converts RGB values to the nearest xterm 256 color code
+func RGBToColor256(r, g, b int) int {
+	return 16 + 36*(r/51) + 6*(g/51) + (b / 51)
+}
+
 // HexColor256 converts RGB values to an ANSI 256 color escape sequence and applies it to a message
 func HexColor256(r, g, b int, msg string) string {
-	// Convert RGB values to the nearest xterm 256 color code
-	color := 16 + 36*(r/51) + 6*(g/51) + (b / 51)
-	return fmt.Sprintf("\033[%s;5;%dm%s%s", SetColor, color, msg, Reset)
+	color := RGBToColor256(r, g, b)
+	return fmt.Sprintf("\033[%s;%s;%dm%s%s", SetColor, SetNormal, color, msg, Reset)
 }
 
 // SprintHexf returns a string with a hex color
-func SprintHexf(color U8Color, msg string) string {
-	return fmt.Sprintf("\033[%s;5;%sm%s%s", SetColor, string(color), msg, Reset)
+func SprintHexf(hex string, msg string) (string, error) {
+	r, g, b, err := HexToRGB(hex)
+	if err != nil {
+		return "", err
+	}
+	color := RGBToColor256(r, g, b)
+	return fmt.Sprintf("\033[%s;%s;%dm%s%s", SetColor, SetNormal, color, msg, Reset), nil
 }
 
 // HexToBg converts a hex color to a background color
-func HexToBg(hexColor U8Color) string {
-	return fmt.Sprintf("\033[%s;5;%sm", SetColor, string(hexColor))
+func HexToBg(hex string) (string, error) {
+	r, g, b, err := HexToRGB(hex)
+	if err != nil {
+		return "", err
+	}
+	color := RGBToColor256(r, g, b)
+	return fmt.Sprintf("\033[%s;%s;%dm", SetBgHex, SetNormal, color), nil
 }
 
 // HexBgAndFg returns a string with a background and foreground color
-func HexBgAndFg(hexFg, hexBg U8Color, msg string) string {
-	return fmt.Sprintf("\033[%s;5;%sm\033[%s;5;%sm%s%s", SetColor, string(hexFg), SetColor, string(hexBg), msg, Reset)
+func HexBgAndFg(hexFg, hexBg, msg string) (string, error) {
+	rFg, gFg, bFg, err := HexToRGB(hexFg)
+	if err != nil {
+		return "", err
+	}
+	colorFg := RGBToColor256(rFg, gFg, bFg)
+
+	rBg, gBg, bBg, err := HexToRGB(hexBg)
+	if err != nil {
+		return "", err
+	}
+	colorBg := RGBToColor256(rBg, gBg, bBg)
+
+	return fmt.Sprintf("\033[%s;%s;%dm\033[%s;%s;%dm%s%s", SetColor, SetNormal, colorFg, SetBgHex, SetNormal, colorBg, msg, Reset), nil
 }
