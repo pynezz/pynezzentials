@@ -74,6 +74,7 @@ func GetFilesWithExtension(dirname string, extension string) ([]string, error) {
 		}
 		return nil
 	})
+
 	return files, err
 }
 

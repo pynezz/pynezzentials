@@ -19,11 +19,15 @@ const (
 	White  = "\033[97m"
 )
 
-type U8color string
+type U8Color string
 
 const (
-	SetColor = "38"
+	SetColor  U8Color = "38"
+	SetNormal U8Color = "5"
+	SetHex    U8Color = "2"
 )
+
+var Bit8Color U8Color
 
 // Ansi styles
 const (
@@ -315,7 +319,7 @@ func PrintColorAndBgBold(color, bg, msg string) {
 	fmt.Printf("%s%s%s\n", color+bg+Bold, msg, Reset)
 }
 
-func (s U8color) Color256(color U8color, msg string) string {
+func (s U8Color) Color256(color U8Color, msg string) string {
 	return fmt.Sprintf("\033[%s;5;%sm%s%s", SetColor, string(color), msg, Reset)
 }
 
@@ -347,8 +351,12 @@ func HexToRGB(hex string) (int, int, int, error) {
 }
 
 // HexColor256 converts RGB values to an ANSI 256 color escape sequence and applies it to a message
-func (s U8color) HexColor256(r, g, b int, msg string) string {
+func HexColor256(r, g, b int, msg string) string {
 	// Convert RGB values to the nearest xterm 256 color code
 	color := 16 + 36*(r/51) + 6*(g/51) + (b / 51)
 	return fmt.Sprintf("\033[%s;5;%dm%s%s", SetColor, color, msg, Reset)
+}
+
+func SprintHexf(color U8Color, msg string) string {
+	return fmt.Sprintf("\033[%s;5;%sm%s%s", SetColor, string(color), msg, Reset)
 }

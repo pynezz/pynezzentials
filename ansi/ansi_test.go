@@ -51,7 +51,7 @@ func TestHexColor256(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		result := ansi.U8color("").HexColor256(test.r, test.g, test.b, test.msg)
+		result := ansi.HexColor256(test.r, test.g, test.b, test.msg)
 		if result != test.expected {
 			t.Errorf("For RGB (%d, %d, %d) and msg %s, expected %s, but got %s", test.r, test.g, test.b, test.msg, test.expected, result)
 		}
@@ -61,7 +61,7 @@ func TestHexColor256(t *testing.T) {
 // TestColor256 tests the Color256 function
 func TestColor256(t *testing.T) {
 	tests := []struct {
-		color    ansi.U8color
+		color    ansi.U8Color
 		msg      string
 		expected string
 	}{
@@ -70,7 +70,7 @@ func TestColor256(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		result := ansi.U8color("").Color256(test.color, test.msg)
+		result := ansi.U8Color("").Color256(test.color, test.msg)
 		if result != test.expected {
 			t.Errorf("For color %s and msg %s, expected %s, but got %s", test.color, test.msg, test.expected, result)
 		}
