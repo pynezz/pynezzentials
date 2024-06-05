@@ -357,6 +357,17 @@ func HexColor256(r, g, b int, msg string) string {
 	return fmt.Sprintf("\033[%s;5;%dm%s%s", SetColor, color, msg, Reset)
 }
 
+// SprintHexf returns a string with a hex color
 func SprintHexf(color U8Color, msg string) string {
 	return fmt.Sprintf("\033[%s;5;%sm%s%s", SetColor, string(color), msg, Reset)
+}
+
+// HexToBg converts a hex color to a background color
+func HexToBg(hexColor U8Color) string {
+	return fmt.Sprintf("\033[%s;5;%sm", SetColor, string(hexColor))
+}
+
+// HexBgAndFg returns a string with a background and foreground color
+func HexBgAndFg(hexFg, hexBg U8Color, msg string) string {
+	return fmt.Sprintf("\033[%s;5;%sm\033[%s;5;%sm%s%s", SetColor, string(hexFg), SetColor, string(hexBg), msg, Reset)
 }
